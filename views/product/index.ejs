@@ -1,0 +1,224 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 99vw;
+      }
+
+      td,
+      th {
+        padding: 5px 10px;
+        border: 1px solid black;
+      }
+
+      th:nth-child(3) {
+        width: 10vw;
+      }
+      th:nth-child(4) {
+        width: 8vw;
+      }
+      th:nth-child(5) {
+        width: 8vw;
+      }
+
+      input {
+        width: 100%;
+      }
+
+      .hide {
+        display: none;
+      }
+    </style>
+    <script>
+      function testthis(x) {
+        console.log(x.parentNode.parentNode.id);
+      }
+    </script>
+  </head>
+  <body>
+    <h1>PRODUK</h1>
+    <span>Note: Click to Edit</span><br />
+    <span>Click outside to confirm</span>
+    <table>
+      <thead>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Website</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Address</th>
+        <th>Action</th>
+      </thead>
+      <tbody>
+        <% data.forEach(e => { %>
+        <tr id="<%=e.id%>" class="edit">
+          <td><%= e.id %></td>
+          <td><%= e.name%></td>
+          <td><%= e.description %></td>
+          <td><%= e.website %></td>
+          <td><%= e.phone %></td>
+          <td><%= e.email %></td>
+          <td><%= e.address %></td>
+          <td>
+            <button
+              onclick="deleteHandle('/product/<%= e.id %>','<%= e.name%>',this)"
+            >
+              delete
+            </button>
+          </td>
+        </tr>
+        <% }); %>
+        <tr>
+          <td></td>
+          <form action="/product/" method="post">
+            <td>
+              <input type="text" name="name" />
+            </td>
+            <td><input type="text" name="description" /></td>
+            <td><input type="text" name="website" /></td>
+            <td><input type="text" name="phone" /></td>
+            <td><input type="text" name="email" /></td>
+            <td><input type="text" name="address" /></td>
+            <td><button type="submit">Add</button></td>
+          </form>
+        </tr>
+      </tbody>
+    </table>
+    <div id="test"></div>
+    <script>
+      function textToInput(text) {
+        const node = document.createElement("input");
+        node.setAttribute("value", text);
+        node.setAttribute("type", "text");
+        node.setAttribute("class", "tempInput");
+        return node;
+      }
+
+      function deleteTempInput() {
+        const node = document.querySelectorAll(".tempInput");
+        if (node.length > 0) {
+          node.forEach((e) => {
+            const text = e.value;
+            e.parentNode.innerHTML = text;
+          });
+        }
+      }
+
+      function insertInput(id, num) {
+        const text = document.getElementById(id).children[num].innerHTML;
+        document.getElementById(id).children[num].innerHTML = "";
+        document.getElementById(id).children[num].append(textToInput(text));
+      }
+
+      // focus or blur handle
+      document.querySelectorAll(".edit").forEach((editelement) => {
+        for (let i = 1; i < editelement.children.length - 1; i++) {
+          function eventhandlerparent() {
+            editHandle(editelement);
+            editelement.children[i].removeEventListener(
+              "click",
+              eventhandlerparent
+            );
+
+            function eventhandler() {
+              const name = editelement.children[1].innerHTML;
+              if (!editelement.contains(event.target)) {
+                if (confirm(`Anda yakin mengedit ${name} ini?`)) {
+                  submitEditHandle(editelement.id);
+                } else {
+                  location.reload();
+                }
+              }
+            }
+
+            document.addEventListener("mousedown", eventhandler);
+            document.addEventListener("keypress", (e) => {
+              if (e.key == "Enter") {
+                const name = editelement.children[1].innerHTML;
+                if (confirm(`Anda yakin mengedit ${name} ini?`)) {
+                  submitEditHandle(editelement.id);
+                } else {
+                  location.reload();
+                }
+              }
+            });
+          }
+
+          editelement.children[i].addEventListener("click", eventhandlerparent);
+        }
+      });
+
+      function editHandle(x) {
+        const id = x.id;
+        let node = x;
+        let childrenNode = node.children;
+        let arrayInput = [];
+        for (let i = 1; i < childrenNode.length - 1; i++) {
+          arrayInput.push(textToInput(childrenNode[i].innerHTML));
+        }
+        for (let i = 1; i < childrenNode.length; i++) {
+          childrenNode[i].classList.add("hide");
+        }
+
+        let form = document.createElement("form");
+        form.setAttribute("action", "javascript:;");
+        form.setAttribute("onSubmit", `submitEditHandle("/product/${id}")`);
+        node.appendChild(form);
+
+        arrayInput.forEach((e) => {
+          let td = document.createElement("td");
+          td.appendChild(e);
+          node.appendChild(td);
+        });
+      }
+
+      function submitEditHandle(id) {
+        const node = document.querySelectorAll(".tempInput");
+        node.forEach((e) => {
+          console.log(e.value);
+        });
+
+        fetch(`/product/${id}`, {
+          method: "PUT",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: node[0].value,
+            description: node[1].value,
+            website: node[2].value,
+            phone: node[3].value,
+            email: node[4].value,
+            address: node[5].value,
+          }),
+        })
+          .then((response) => response.json())
+          .then((response) => {
+            console.log(JSON.stringify(response));
+            if (response.success) {
+              location.reload();
+            }
+          });
+      }
+
+      function deleteHandle(linkurl, name, element) {
+        if (confirm(`Anda yakin akan menghapus ${name} ini?`)) {
+          fetch(linkurl, { method: "DELETE" })
+            .then((response) => response.json())
+            .then((response) => {
+              console.log(JSON.stringify(response));
+              if (response.success) {
+                location.reload();
+              }
+            });
+        }
+      }
+    </script>
+  </body>
+</html>
