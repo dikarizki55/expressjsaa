@@ -12,7 +12,7 @@ var session = require("express-session");
 
 var app = express();
 
-app.set("trust proxy", 1);
+// app.set("trust proxy", true);
 // Populates req.session
 app.use(
   session({
@@ -36,7 +36,7 @@ app.get("/", function (req, res) {
   res.send(
     body + "<p>viewed <strong>" + req.session.views + "</strong> times.</p>"
   );
-  console.log(req.session);
+  // console.log(req.session);
 });
 
 app.get("/test", function (req, res) {
