@@ -91,6 +91,33 @@
     </table>
     <div id="test"></div>
     <script>
+      // autorefresh when no interaction
+      let timer;
+      let counter;
+      function runTimer() {
+        counter = window.setTimeout(() => {
+          for (let i = 5; i > 0; i--) {
+            setTimeout(() => {
+              console.log(5 - i);
+            }, i * 1000);
+          }
+        }, 1000);
+        timer = window.setTimeout(() => {
+          window.location.href = "/auth/logout";
+        }, 6000);
+      }
+      runTimer();
+      function webrefresh() {
+        clearTimeout(timer);
+        clearTimeout(counter);
+        runTimer();
+      }
+      document.body.addEventListener("mousemove", webrefresh);
+      document.body.addEventListener("scroll", webrefresh);
+      document.body.addEventListener("keydown", webrefresh);
+      document.body.addEventListener("click", webrefresh);
+      document.body.addEventListener("touchstart", webrefresh);
+
       function textToInput(text) {
         const node = document.createElement("input");
         node.setAttribute("value", text);

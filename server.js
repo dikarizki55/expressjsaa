@@ -34,6 +34,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     secret: "misalnya",
+    cookie: {
+      // maxAge: 5000,
+    },
   })
 );
 
